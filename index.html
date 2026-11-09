@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Travel Sage</title>
+<meta name="theme-color" content="#0f5c63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Travel Sage">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--ink:#1d2326;--muted:#5f6b70;--line:#e3dfd6;--brand:#0f5c63;--brand-ink:#fff;--good:#1f7a3a;--good-bg:#e5f4e8;--warn:#9a5b00;--warn-bg:#fdf1dc;--bad:#b3261e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111618;--card:#1a2124;--ink:#e8ecec;--muted:#9aa7ab;--line:#2b3438;--brand:#4fb3bb;--brand-ink:#0b1416;--good:#7fd69a;--good-bg:#173323;--warn:#f0b75e;--warn-bg:#3a2b12;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#111618;--card:#1a2124;--ink:#e8ecec;--muted:#9aa7ab;--line:#2b3438;--brand:#4fb3bb;--brand-ink:#0b1416;--good:#7fd69a;--good-bg:#173323;--warn:#f0b75e;--warn-bg:#3a2b12;--bad:#ff8a80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+header{padding:calc(14px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-size:22px;margin:0;letter-spacing:-.01em}
+h1 span{color:var(--brand)}
+h2{font-size:18px;margin:22px 0 10px}
+main{max-width:720px;margin:0 auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.muted{color:var(--muted);font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.price{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--muted)}
+.badge.good{background:var(--good-bg);color:var(--good)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+button,.btn{font:inherit;font-weight:600;border:0;border-radius:12px;padding:12px 16px;background:var(--brand);color:var(--brand-ink);cursor:pointer;text-decoration:none;display:inline-block;text-align:center}
+button.ghost,.btn.ghost{background:transparent;color:var(--brand);border:1px solid var(--line)}
+button.small{padding:6px 10px;font-size:14px}
+button:disabled{opacity:.55;cursor:default}
+.wide{width:100%}
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 4px}
+input,select{font:inherit;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+input[type=date]{min-width:0;-webkit-appearance:none;appearance:none;min-height:46px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;color:var(--muted);border-radius:0;padding:10px 4px 12px;font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:24px;height:24px}
+nav button[aria-current="page"]{color:var(--brand)}
+.wl-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}
+.wl-item:first-child{border-top:0}
+.wl-item .name{flex:1;min-width:0}
+.wl-item input{width:96px;padding:8px}
+.status{padding:12px 14px;border-radius:12px;background:var(--warn-bg);color:var(--warn);margin:10px 0;font-size:15px}
+.status.ok{background:var(--good-bg);color:var(--good)}
+.status.err{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+a{color:var(--brand)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>Travel <span>Sage</span></h1>
+  <button class="ghost small" id="settingsBtn" aria-label="Settings">Settings</button>
+</header>
+<main id="app"></main>
+<nav id="nav" class="hidden">
+  <button data-tab="deals" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>Deals</button>
+  <button data-tab="watch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>Watch list</button>
+  <button data-tab="hunt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>Trip hunt</button>
+</nav>
+<script>
+const PLACES={"Europe": ["London (LHR,LGW)", "Paris (CDG,ORY)", "Rome (FCO)", "Milan (MXP,LIN)", "Venice (VCE)", "Naples (NAP)", "Florence (FLR)", "Athens (ATH)", "Barcelona (BCN)", "Madrid (MAD)", "Seville (SVQ)", "Lisbon (LIS)", "Porto (OPO)", "Amsterdam (AMS)", "Brussels (BRU)", "Frankfurt (FRA)", "Munich (MUC)", "Berlin (BER)", "Vienna (VIE)", "Prague (PRG)", "Budapest (BUD)", "Zurich (ZRH)", "Geneva (GVA)", "Nice (NCE)", "Copenhagen (CPH)", "Stockholm (ARN)", "Oslo (OSL)", "Helsinki (HEL)", "Reykjavik (KEF)", "Dublin (DUB)", "Edinburgh (EDI)", "Manchester (MAN)", "Dubrovnik (DBV)", "Split (SPU)", "Kraków (KRK)", "Warsaw (WAW)", "Tallinn (TLL)", "Malta (MLA)"], "Türkiye": ["Istanbul (IST,SAW)", "Antalya (AYT)", "Izmir (ADB)", "Bodrum (BJV)", "Dalaman (DLM)", "Cappadocia (NAV)"], "The Stans": ["Almaty (ALA)", "Astana (NQZ)", "Tashkent (TAS)", "Samarkand (SKD)", "Bukhara (BHK)", "Bishkek (FRU)", "Dushanbe (DYU)", "Ashgabat (ASB)"], "Japan": ["Tokyo (HND,NRT)", "Osaka (KIX)", "Nagoya (NGO)", "Sapporo (CTS)", "Fukuoka (FUK)", "Okinawa (OKA)"], "Stopover hubs": ["Singapore (SIN)", "Hong Kong (HKG)", "Bangkok (BKK)", "Kuala Lumpur (KUL)", "Seoul (ICN)", "Taipei (TPE)", "Doha (DOH)", "Dubai (DXB)", "Abu Dhabi (AUH)", "Delhi (DEL)"]};
+const OWNER = "Mark2e", REPO = "travel-sage";
+const ORIGINS = ["Sydney (SYD)","Western Sydney (WSI)","Melbourne (MEL)","Brisbane (BNE)","Auckland (AKL)","Istanbul (IST,SAW)","Singapore (SIN)"];
+const HOME = ["SYD","WSI","MEL","BNE"], JAPAN = ["HND","NRT","KIX","NGO","CTS","FUK","OKA"];
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Number(n).toLocaleString("en-AU");
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let token = store.get("ts_token", "");
+
+async function gh(path, opts = {}) {
+  const res = await fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + path, {
+    ...opts,
+    headers: { "Authorization": "Bearer " + token, "Accept": opts.raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(opts.body ? {"Content-Type": "application/json"} : {}) }
+  });
+  if (res.status === 401) throw new Error("The access key was rejected. It may have expired or been mistyped. Open Settings to enter it again.");
+  if (res.status === 403 || res.status === 404) throw new Error("GitHub refused that (" + res.status + "). Check the access key has Actions, Contents and Issues set to Read and write for travel-sage.");
+  if (!res.ok) throw new Error("GitHub error " + res.status + ": " + (await res.text()).slice(0, 200));
+  if (res.status === 204) return null;
+  return opts.raw ? res.text() : res.json();
+}
+const b64 = s => btoa(unescape(encodeURIComponent(s)));
+const unb64 = s => decodeURIComponent(escape(atob(s.replace(/\n/g, ""))));
+function parsePlace(p) { const m = p.match(/^(.+) \(([A-Z,]+)\)$/); return m ? { name: m[1], codes: m[2] } : null; }
+function cleanCodes(s) { const c = (s || "").toUpperCase().replace(/[^A-Z,]/g, ""); return /^[A-Z]{3}(,[A-Z]{3})*$/.test(c) ? c : null; }
+function destSelect(id) {
+  let h = `<select id="${id}"><option value="">Choose a destination…</option>`;
+  for (const [g, list] of Object.entries(PLACES)) h += `<optgroup label="${esc(g)}">` + list.map(p => `<option>${esc(p)}</option>`).join("") + "</optgroup>";
+  return h + `<option value="other">Other (type an airport code)</option></select>`;
+}
+function originSelect(id) { return `<select id="${id}">` + ORIGINS.map(p => `<option>${esc(p)}</option>`).join("") + `<option value="other">Other (type an airport code)</option></select>`; }
+function readPlace(selId, otherId) {
+  const v = $("#" + selId).value;
+  if (!v) throw new Error("Please choose a destination.");
+  if (v === "other") { const c = cleanCodes($("#" + otherId).value); if (!c) throw new Error("That doesn't look like an airport code (three letters, e.g. LIS)."); return { name: c, codes: c }; }
+  return parsePlace(v);
+}
+function wireOther(selId, otherId) { const f = () => $("#" + otherId).parentElement.classList.toggle("hidden", $("#" + selId).value !== "other"); $("#" + selId).addEventListener("change", f); f(); }
+function status(el, msg, kind = "") { el.innerHTML = msg ? `<div class="status ${kind}">${msg}</div>` : ""; }
+
+/* ---------- Setup ---------- */
+function showSetup() {
+  $("#nav").classList.add("hidden");
+  app.innerHTML = `
+  <div class="card">
+    <h2 style="margin-top:4px">Welcome</h2>
+    <p>Paste your Travel Sage access key below. It's stored only on this device, so you'll enter it once per phone or computer.</p>
+    <label for="tok">Access key</label>
+    <input id="tok" type="password" autocomplete="off" placeholder="github_pat_…" value="${esc(token)}">
+    <div id="setupMsg"></div>
+    <p><button class="wide" id="saveTok">Save and open</button></p>
+    ${token ? `<p><button class="ghost wide" id="forget">Forget key on this device</button></p>` : ""}
+    <p class="muted">Tip: on iPhone, tap Share then "Add to Home Screen" to get a Travel Sage icon.</p>
+  </div>`;
+  $("#saveTok").onclick = async () => {
+    token = $("#tok").value.trim();
+    status($("#setupMsg"), '<span class="spinner"></span>Checking…');
+    try { await gh(""); store.set("ts_token", token); start(); }
+    catch (e) { status($("#setupMsg"), esc(e.message), "err"); }
+  };
+  if ($("#forget")) $("#forget").onclick = () => { token = ""; store.set("ts_token", ""); showSetup(); };
+}
+
+/* ---------- Deals ---------- */
+async function showDeals() {
+  app.innerHTML = `<div id="checkBox" class="card"><div class="row"><div><strong>Latest check</strong><div class="muted" id="checked">Loading…</div></div><button id="checkNow">Check now</button></div><div id="checkMsg"></div></div><div id="deals"></div>`;
+  $("#checkNow").onclick = checkNow;
+  await renderDeals();
+}
+async function renderDeals() {
+  let data;
+  try { data = JSON.parse(await gh("/contents/results.json", { raw: true })); }
+  catch (e) {
+    $("#checked").textContent = "No results yet";
+    $("#deals").innerHTML = `<div class="card muted">No saved results yet. Tap <strong>Check now</strong> to run the first one.</div>`;
+    return;
+  }
+  const when = new Date(data.checked);
+  $("#checked").textContent = when.toLocaleString("en-AU", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) + " · sample dates " + data.sample;
+  const rows = (data.rows || []).slice().sort((a, b) => a.price / a.target - b.price / b.target);
+  const under = rows.filter(r => r.price <= r.target);
+  let h = `<h2>${under.length ? `🔥 ${under.length} under target` : "Nothing under target this time"}</h2>`;
+  for (const r of rows) {
+    const pct = Math.round((r.price / r.target - 1) * 100);
+    const best = (data.best || {})[r.cabin + "|" + r.name];
+    const badge = r.price <= r.target ? `<span class="badge good">Under target</span>` : pct <= 10 ? `<span class="badge warn">${pct}% over</span>` : `<span class="badge">${pct}% over</span>`;
+    const level = r.level ? ` · Google says <strong>${esc(r.level)}</strong>` : "";
+    h += `<div class="card">
+      <div class="row"><div><strong>${esc(r.name)}</strong> <span class="muted">${esc(r.cabin)}</span></div>${badge}</div>
+      <div class="row"><div class="price">${money(r.price)}</div><div class="muted">target ${money(r.target)}</div></div>
+      <div class="muted">${esc(r.airlines)} · ${r.stops} stop${r.stops == 1 ? "" : "s"} · ${esc(r.dates)}</div>
+      <div class="muted">${r.typical ? "Typical " + esc(r.typical) : ""}${level}${best && best.price < r.price ? ` · Best seen ${money(best.price)} (${esc(best.seen)})` : ""}</div>
+      ${r.link ? `<p style="margin:10px 0 0"><a class="btn ghost small" href="${esc(r.link)}" target="_blank" rel="noopener">Open in Google Flights</a></p>` : ""}
+    </div>`;
+  }
+  $("#deals").innerHTML = h;
+}
+async function checkNow() {
+  const btn = $("#checkNow"), msg = $("#checkMsg");
+  btn.disabled = true;
+  const started = Date.now() - 5000;
+  try {
+    await gh("/actions/workflows/check.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) });
+    status(msg, '<span class="spinner"></span>Checking fares… this usually takes 1 to 2 minutes. You can leave this screen open.');
+    for (let i = 0; i < 60; i++) {
+      await sleep(8000);
+      const runs = await gh("/actions/workflows/check.yml/runs?event=workflow_dispatch&per_page=1");
+      const run = runs.workflow_runs[0];
+      if (run && new Date(run.created_at).getTime() >= started && run.status === "completed") {
+        if (run.conclusion !== "success") throw new Error("The check didn't finish properly. Try again later, or ask Claude to look.");
+        await sleep(3000);
+        status(msg, "Done. Results updated.", "ok");
+        await renderDeals();
+        btn.disabled = false;
+        return;
+      }
+    }
+    throw new Error("The check is taking longer than usual. Results will appear here when it finishes.");
+  } catch (e) { status(msg, esc(e.message), "err"); btn.disabled = false; }
+}
+
+/* ---------- Watch list ---------- */
+let wl = null, wlSha = null;
+async function showWatch() {
+  app.innerHTML = `<div id="wlMsg"></div><div id="wl" class="muted card">Loading…</div>
+  <h2>Add a destination</h2>
+  <div class="card">
+    <label for="aDest">Destination</label>${destSelect("aDest")}
+    <div class="hidden"><label for="aOther">Airport code(s)</label><input id="aOther" placeholder="e.g. TBS or HND,NRT"></div>
+    <label for="aFrom">Flying from</label>${originSelect("aFrom")}
+    <div class="hidden"><label for="aFromOther">Origin airport code</label><input id="aFromOther" placeholder="e.g. PER"></div>
+    <label for="aCabin">Cabin</label><select id="aCabin"><option>Economy</option><option>Business</option><option value="both">Both</option></select>
+    <div class="grid2">
+      <div><label for="aEcon">Economy target</label><input id="aEcon" inputmode="numeric" placeholder="auto"></div>
+      <div><label for="aBus">Business target</label><input id="aBus" inputmode="numeric" placeholder="auto"></div>
+    </div>
+    <p class="muted">Return fare per person in AUD. Leave blank for a sensible default.</p>
+    <button class="wide" id="addBtn">Add to watch list</button>
+  </div>`;
+  wireOther("aDest", "aOther"); wireOther("aFrom", "aFromOther");
+  $("#addBtn").onclick = addRoute;
+  await loadWatch();
+}
+async function loadWatch() {
+  const f = await gh("/contents/watchlist.json");
+  wlSha = f.sha; wl = JSON.parse(unb64(f.content));
+  renderWatch();
+}
+function renderWatch() {
+  const n = wl.economy.length + wl.business.length;
+  let h = `<div class="muted">${n} routes · about ${Math.round(n * 4.33)} searches a month from your SerpApi allowance</div>`;
+  for (const cabin of ["economy", "business"]) {
+    h += `<h2>${cabin === "economy" ? "Economy" : "Business"}</h2><div class="card">`;
+    if (!wl[cabin].length) h += `<div class="muted">None yet.</div>`;
+    wl[cabin].forEach((r, i) => {
+      h += `<div class="wl-item"><div class="name"><strong>${esc(r.name)}</strong><div class="muted">${esc(r.origin)} → ${esc(r.destination)}</div></div>
+        <input aria-label="Target for ${esc(r.name)}" inputmode="numeric" value="${r.target}" data-cabin="${cabin}" data-i="${i}">
+        <button class="ghost small" data-del="${cabin}|${i}" aria-label="Remove ${esc(r.name)}">✕</button></div>`;
+    });
+    h += `</div>`;
+  }
+  $("#wl").className = ""; $("#wl").innerHTML = h;
+  $("#wl").querySelectorAll("input[data-cabin]").forEach(inp => inp.addEventListener("change", () => {
+    const v = parseInt(inp.value.replace(/\D/g, ""), 10);
+    if (!v) { inp.value = wl[inp.dataset.cabin][inp.dataset.i].target; return; }
+    const r = wl[inp.dataset.cabin][inp.dataset.i]; r.target = v;
+    saveWatch(`Target for ${r.name} set to ${money(v)}.`);
+  }));
+  $("#wl").querySelectorAll("button[data-del]").forEach(b => b.onclick = () => {
+    const [cabin, i] = b.dataset.del.split("|"); const r = wl[cabin][i];
+    if (!confirm(`Remove ${r.name} (${cabin}) from the watch list?`)) return;
+    wl[cabin].splice(i, 1); saveWatch(`Removed ${r.name}.`);
+  });
+}
+async function saveWatch(okMsg) {
+  status($("#wlMsg"), '<span class="spinner"></span>Saving…');
+  try {
+    const res = await gh("/contents/watchlist.json", { method: "PUT", body: JSON.stringify({ message: "Watch list change from the app", content: b64(JSON.stringify(wl, null, 2) + "\n"), sha: wlSha }) });
+    wlSha = res.content.sha;
+    status($("#wlMsg"), esc(okMsg) + " The next check will use it.", "ok");
+  } catch (e) {
+    status($("#wlMsg"), esc(e.message) + " Reloading the list.", "err");
+  }
+  await loadWatch();
+}
+function addRoute() {
+  try {
+    const d = readPlace("aDest", "aOther");
+    const fromV = $("#aFrom").value;
+    const o = fromV === "other" ? (() => { const c = cleanCodes($("#aFromOther").value); if (!c) throw new Error("That origin doesn't look like an airport code."); return { name: c, codes: c }; })() : parsePlace(fromV);
+    const home = o.codes.split(",").some(c => HOME.includes(c)), jp = d.codes.split(",").some(c => JAPAN.includes(c));
+    const defs = !home ? [500, 2000] : jp ? [900, 4000] : [1600, 6000];
+    const cabins = $("#aCabin").value === "both" ? ["economy", "business"] : [$("#aCabin").value.toLowerCase()];
+    const name = `${o.name} - ${d.name}`;
+    for (const cabin of cabins) {
+      const typed = parseInt(($(cabin === "economy" ? "#aEcon" : "#aBus").value || "").replace(/\D/g, ""), 10);
+      const target = typed || (cabin === "economy" ? defs[0] : defs[1]);
+      wl[cabin] = wl[cabin].filter(r => !(r.origin === o.codes && r.destination === d.codes));
+      wl[cabin].push({ name, origin: o.codes, destination: d.codes, target });
+    }
+    saveWatch(`Added ${name}.`);
+  } catch (e) { status($("#wlMsg"), esc(e.message), "err"); window.scrollTo({ top: 0, behavior: "smooth" }); }
+}
+
+/* ---------- Trip hunt ---------- */
+async function showHunt() {
+  const today = new Date(), iso = d => d.toISOString().slice(0, 10);
+  const a = new Date(today.getFullYear(), today.getMonth() + 4, 1), b = new Date(today.getFullYear(), today.getMonth() + 5, 0);
+  app.innerHTML = `<div class="card">
+    <p class="muted" style="margin-top:0">Searches up to 8 departure dates across your window and shows the cheapest. Takes 2 to 4 minutes, and uses about 8 searches per cabin.</p>
+    <label for="hFrom">Flying from</label>${originSelect("hFrom")}
+    <div class="hidden"><label for="hFromOther">Origin airport code</label><input id="hFromOther" placeholder="e.g. PER"></div>
+    <label for="hDest">Destination</label>${destSelect("hDest")}
+    <div class="hidden"><label for="hOther">Airport code(s)</label><input id="hOther" placeholder="e.g. TBS"></div>
+    <label for="hCabin">Cabin</label><select id="hCabin"><option>Economy</option><option>Business</option><option>Both</option><option>Premium economy</option></select>
+    <div class="grid2">
+      <div><label for="hEarly">Leave from</label><input id="hEarly" type="date" value="${iso(a)}"></div>
+      <div><label for="hLate">Leave by</label><input id="hLate" type="date" value="${iso(b)}"></div>
+    </div>
+    <label for="hDays">Days away</label><input id="hDays" inputmode="numeric" value="28">
+    <p><button class="wide" id="huntBtn">Search</button></p>
+    <div id="huntMsg"></div>
+  </div><div id="huntOut"></div>`;
+  wireOther("hDest", "hOther"); wireOther("hFrom", "hFromOther");
+  $("#huntBtn").onclick = runHunt;
+  renderHunts();
+}
+function renderHunts() {
+  const hunts = store.get("ts_hunts", []);
+  if (!hunts.length) { $("#huntOut").innerHTML = ""; return; }
+  $("#huntOut").innerHTML = hunts.map((h, idx) => {
+    let s = `<h2>${esc(h.title)} <span class="muted">· ${h.days} days${idx === 0 ? "" : " · " + esc(h.when)}</span></h2>`;
+    for (const [cabin, rows] of Object.entries(h.cabins || {})) {
+      s += `<div class="card"><strong>${esc(cabin)}</strong>`;
+      rows.forEach((r, i) => s += `<div class="wl-item"><div class="name">${i === 0 ? "🏆 " : ""}<strong>${money(r.price)}</strong> <span class="muted">${esc(r.airlines)} · ${r.stops} stop${r.stops == 1 ? "" : "s"}</span><div class="muted">${esc(r.dates)}${r.typical ? " · typical " + esc(r.typical) : ""}</div></div>${r.link ? `<a class="btn ghost small" href="${esc(r.link)}" target="_blank" rel="noopener">View</a>` : ""}</div>`);
+      s += `</div>`;
+    }
+    if (!Object.keys(h.cabins || {}).length) s += `<div class="card muted">No fares came back for those dates.</div>`;
+    return s;
+  }).join("");
+}
+async function runHunt() {
+  const msg = $("#huntMsg"), btn = $("#huntBtn");
+  try {
+    const d = readPlace("hDest", "hOther");
+    const fromV = $("#hFrom").value;
+    const fromLabel = fromV === "other" ? "Other (type the code below)" : fromV, fromOther = fromV === "other" ? $("#hFromOther").value : "";
+    const destLabel = $("#hDest").value === "other" ? "Other (type the code below)" : $("#hDest").value, destOther = $("#hDest").value === "other" ? $("#hOther").value : "";
+    if (!$("#hEarly").value || !$("#hLate").value) throw new Error("Please choose both dates.");
+    if ($("#hLate").value < $("#hEarly").value) throw new Error("'Leave by' is before 'Leave from'.");
+    const nr = v => v ? v : "_No response_";
+    const body = [["Flying from", fromLabel], ["Other origin (only if you picked Other)", nr(fromOther)], ["Destination", destLabel], ["Other destination (only if you picked Other)", nr(destOther)], ["Cabin", $("#hCabin").value], ["Earliest departure date", $("#hEarly").value], ["Latest departure date", $("#hLate").value], ["Trip length in days", $("#hDays").value || "28"], ["Notes for yourself (optional)", "Sent from the Travel Sage app"]].map(([k, v]) => `### ${k}\n\n${v}`).join("\n\n");
+    btn.disabled = true;
+    status(msg, '<span class="spinner"></span>Searching… usually 2 to 4 minutes. Keep this screen open.');
+    const issue = await gh("/issues", { method: "POST", body: JSON.stringify({ title: `Trip hunt: ${d.name} (from app)`, body, labels: ["trip-hunt"] }) });
+    for (let i = 0; i < 60; i++) {
+      await sleep(8000);
+      const comments = await gh(`/issues/${issue.number}/comments`);
+      if (comments.length) {
+        const text = comments[comments.length - 1].body;
+        const m = text.match(/<!--json ([\s\S]*?) -->/);
+        if (!m) throw new Error(text.split("\n")[0].slice(0, 300));
+        const data = JSON.parse(m[1]);
+        data.when = new Date().toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+        store.set("ts_hunts", [data, ...store.get("ts_hunts", [])].slice(0, 5));
+        status(msg, "");
+        renderHunts();
+        btn.disabled = false;
+        $("#huntOut").scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+    throw new Error("This is taking longer than usual. Try again in a few minutes.");
+  } catch (e) { status(msg, esc(e.message), "err"); btn.disabled = false; }
+}
+
+/* ---------- Shell ---------- */
+const TABS = { deals: showDeals, watch: showWatch, hunt: showHunt };
+function go(tab) {
+  document.querySelectorAll("#nav button").forEach(b => b.dataset.tab === tab ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+  store.set("ts_tab", tab);
+  TABS[tab]().catch(e => { app.innerHTML = `<div class="status err">${esc(e.message)}</div>`; });
+}
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => go(b.dataset.tab));
+$("#settingsBtn").onclick = showSetup;
+function start() { if (!token) return showSetup(); $("#nav").classList.remove("hidden"); go(TABS[store.get("ts_tab", "deals")] ? store.get("ts_tab", "deals") : "deals"); }
+start();
+</script>
+</body>
+</html>
